@@ -1,0 +1,13 @@
+name: crawlspace-forum-dev
+
+services:
+  db:
+    image: postgres:17
+    env_file: .env
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - devdata:/var/lib/postgresql/data
+
+volumes:
+  devdata:

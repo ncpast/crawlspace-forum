@@ -1,0 +1,10 @@
+13/10/26
+Set up physical server, installed proxmox and configured operating system.
+
+14/10/26
+Set up the project skeleton: backend, front end, nginx, docker.
+
+15/10/26
+Wrote markdown files and instructions. 
+Configured the development environment.
+Configured the database.
