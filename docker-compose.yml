@@ -11,6 +11,8 @@ services:
 
   frontend:
     build: ./frontend
+    environment:
+      API_URL: http://backend:8000
 
   backend:
     build: ./backend
