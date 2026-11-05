@@ -1,0 +1,17 @@
+---
+import HealthCheck from "../components/HealthCheck";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const API = process.env.API_URL ?? 'http://localhost:8000';
+let serverStatus = 'backend unreachable';
+try {
+	const res = await fetch(`${API}/health`);
+	serverStatus = (await res.json()).status;
+} catch {}
+---
+
+<BaseLayout title="status">
+	<h1>Crawlspace health check</h1>
+	<p>Astro server → backend: <b>{serverStatus}</b></p>
+	<HealthCheck client:load />
+</BaseLayout>
