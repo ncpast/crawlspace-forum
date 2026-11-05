@@ -51,7 +51,10 @@ namespace Backend.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Boards");
+                    b.ToTable("Boards", t =>
+                        {
+                            t.HasCheckConstraint("CK_Boards_Slug_NotReserved", "\"Slug\" NOT IN ('api', 'assets')");
+                        });
 
                     b.HasData(
                         new

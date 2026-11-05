@@ -8,7 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Post> Posts => Set<Post>();
     public DbSet<Board> Boards => Set<Board>();
     public DbSet<Reply> Replies => Set<Reply>();
-    
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.HasSequence<long>("PostReplyNumbers");
@@ -16,6 +16,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         b.Entity<Board>(e =>
         {
             e.HasIndex(x => x.Slug).IsUnique();
+
+            e.ToTable(t => t.HasCheckConstraint("CK_Boards_Slug_NotReserved", "\"Slug\" NOT IN ('api', 'assets')"));
+            
             e.HasData(
                 new Board { Id = 1, Slug = "tech", Name = "Technology", Description = "Hardware, software." },
                 new Board { Id = 2, Slug = "random", Name = "Random", Description = "Everything else." });
