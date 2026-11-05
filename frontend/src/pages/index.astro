@@ -1,7 +1,59 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+
+type Board = {
+    id: number;
+    slug: string;
+    name: string;
+    description: string;
+};
+
+const boards: Board[] = [
+    {
+        id: 1,
+        slug: "fe",
+        name: "flat earth",
+        description:
+            "Is the Earth actually flat? Where's the edge? How come we don't fall out? What about gravity? Learn all of this and more at this very serious s̶u̶b̶r̶e̶d̶d̶i̶t board.",
+    },
+    { id: 2, slug: "c", name: "cats", description: "meow" },
+];
+
+// console.log(boards);
 ---
 
 <BaseLayout>
-    <h1>Hellow cruel world</h1>
+    <div class="main">
+        <div class="boards">
+            <ul style="list-style-type: none;">
+                {boards.map((board) => (<li ><a href={`/${board.slug}/`}>.{board.name}</a></li>))}
+            </ul>
+        </div>
+        <div class="popular">
+            <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Inventore dicta nisi quos dolor exercitationem modi consectetur quasi molestiae blanditiis et, voluptate facere dolorum itaque voluptatibus beatae sapiente odit, hic perspiciatis!</p>
+        </div>
+    </div>
+    
 </BaseLayout>
+
+<style>
+    .main {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .boards {
+        flex: 0 0 30%;
+    }
+    .popular {
+        flex: 1;
+    }
+
+    .main div {
+        padding: 0 15px;
+        border-style: solid;
+        border-radius: 15px;
+        border-color: var(--accent);
+        border-width: 2px;
+    }
+</style>

@@ -1,4 +1,6 @@
 ---
+import "../styles/global.css";
+
 const {title = "crawlspace"} = Astro.props;
 ---
 <html lang="en">
@@ -11,6 +13,9 @@ const {title = "crawlspace"} = Astro.props;
 		<title>{title}</title>
 	</head>
 	<body>
+        <div class="header">
+            <h1>Hellow cruel world</h1>
+        </div>
         <slot>
 
         </slot>

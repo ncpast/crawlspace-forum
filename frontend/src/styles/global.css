@@ -1,0 +1,26 @@
+:root {
+    --bg: black;
+    --text: white;
+    --accent: red;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-size: 100%;
+    line-height: 1.4;
+    margin: 0;
+    background-color: var(--bg);
+    color: var(--text);
+    accent-color: var(--accent);
+    font-family: monospace;
+}
+
+a {
+    color: var(--text);
+    text-decoration: none;
+}
