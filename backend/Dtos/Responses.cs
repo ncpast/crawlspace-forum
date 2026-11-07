@@ -9,7 +9,8 @@ public record PostResponse(
     string Content,
     string Author,
     DateTime CreatedAt,
-    DateTime BumpedAt
+    DateTime BumpedAt,
+    int ReplyCount
 );
 
 public record ReplyResponse(
