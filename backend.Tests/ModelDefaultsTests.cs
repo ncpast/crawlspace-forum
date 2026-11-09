@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using Backend.Data;
 using Backend.Models;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Backend.Tests;
@@ -22,5 +24,29 @@ public class ModelDefaultsTests
 
         Assert.False(valid);
         Assert.Contains(results, r => r.MemberNames.Contains("Title"));
+    }
+
+    [Fact]
+    public void Posts_and_replies_share_the_same_id_sequence()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase("test-sequence-model")
+            .Options;
+        using var context = new AppDbContext(options);
+        var model = context.Model;
+
+        var sequence = model.FindSequence("PostReplyNumbers");
+        Assert.NotNull(sequence);
+
+        var postDefaultSql = model.FindEntityType(typeof(Post))!
+            .FindProperty(nameof(Post.Id))!
+            .GetDefaultValueSql();
+
+        var replyDefaultSql = model.FindEntityType(typeof(Reply))!
+            .FindProperty(nameof(Reply.Id))!
+            .GetDefaultValueSql();
+
+        Assert.Equal("nextval('\"PostReplyNumbers\"')", postDefaultSql);
+        Assert.Equal("nextval('\"PostReplyNumbers\"')", replyDefaultSql);
     }
 }
