@@ -101,23 +101,6 @@ backend/Models/*.cs  ->  backend/Migrations/ (generated SQL)  ->  tables in Post
 - `backend/Migrations/`: generated history of schema changes. Never edit by hand, always commit.
 - On startup the backend applies any new migrations by itself.
 
-### Current schema
-
-**Posts**
-
-| Column | Type | Notes |
-|---|---|---|
-| `Id` | integer | primary key, auto-increments |
-| `Content` | text | required |
-| `CreatedAt` | date/time | set by the server, always UTC |
-
-### Conventions
-
-- Table names plural (`Posts`), model classes singular (`Post`).
-- Primary key is always `Id`, an auto-increment integer.
-- Store all times in UTC.
-- The server sets `Id` and `CreatedAt`. Clients never send them.
-
 ### Look at the data
 
 ```

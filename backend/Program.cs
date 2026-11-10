@@ -5,23 +5,17 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-if (!builder.Environment.IsEnvironment("Testing"))
-{
-    builder.Services.AddDbContext<AppDbContext>(o =>
-        o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
-}
+builder.Services.AddDbContext<AppDbContext>(o =>
+    o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 var app = builder.Build();
 
-// create/update tables on startup
-if (!app.Environment.IsEnvironment("Testing"))
+// create/update tables on startup (InMemory in tests is not relational, so it's skipped)
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     if (db.Database.IsRelational())
-    {
         db.Database.Migrate();
-    }
 }
 
 app.MapGet("/", () => "Hello from backend");

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
@@ -7,6 +8,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Backend.Tests;
@@ -17,22 +21,30 @@ public class ForumTestFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Testing");
-
         builder.ConfigureServices(services =>
         {
-            services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseInMemoryDatabase(_dbName);
-            });
+            // remove the app's Npgsql registration
+            services.RemoveAll<DbContextOptions<AppDbContext>>();
+            services.RemoveAll<IDbContextOptionsConfiguration<AppDbContext>>();
+
+            services.AddDbContext<AppDbContext>(o => o.UseInMemoryDatabase(_dbName));
         });
+    }
+
+    // create the DB (with the HasData boards) as soon as the host starts,
+    // so every test sees tech/random whether or not it calls Seed
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        var host = base.CreateHost(builder);
+        using var scope = host.Services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreated();
+        return host;
     }
 
     public void Seed(Action<AppDbContext> seedAction)
     {
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Database.EnsureCreated();
         seedAction(db);
         db.SaveChanges();
     }
@@ -52,8 +64,6 @@ public class ReadEndpointsTests : IClassFixture<ForumTestFactory>
     [Fact]
     public async Task GetBoards_ReturnsOk_WithSeededBoards()
     {
-        _factory.Seed(_ => { });
-
         var response = await _client.GetAsync("/boards");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -146,7 +156,7 @@ public class ReadEndpointsTests : IClassFixture<ForumTestFactory>
     [Fact]
     public async Task GetBoardPosts_CapsAt50Posts()
     {
-        var factory = new ForumTestFactory();
+        using var factory = new ForumTestFactory();
         var client = factory.CreateClient();
 
         factory.Seed(db =>
@@ -291,5 +301,96 @@ public class ReadEndpointsTests : IClassFixture<ForumTestFactory>
         var response = await _client.GetAsync("/boards/tech/posts/exclusive-random-777");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetBoardPosts_EmptyBoard_ReturnsEmptyArray()
+    {
+        using var factory = new ForumTestFactory(); // fresh DB: seeded boards, no posts
+        var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/boards/random/posts");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("[]", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task GetBoards_JsonIsCamelCase()
+    {
+        using var factory = new ForumTestFactory();
+        var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/boards");
+
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var first = doc.RootElement[0];
+        Assert.Equal(
+            ["id", "slug", "name", "description"],
+            first.EnumerateObject().Select(p => p.Name).ToArray());
+    }
+
+    [Fact]
+    public async Task GetBoardPosts_JsonIsCamelCase_WithUtcTimestamps()
+    {
+        using var factory = new ForumTestFactory();
+        var time = new DateTime(2026, 11, 1, 12, 0, 0, DateTimeKind.Utc);
+        factory.Seed(db =>
+        {
+            db.Posts.Add(new Post
+            {
+                Id = 1, BoardId = 1, PublicId = "json-post-1",
+                Title = "Json", Content = "Body", Author = "Anonymous",
+                CreatedAt = time, BumpedAt = time
+            });
+        });
+        var client = factory.CreateClient();
+
+        using var doc = JsonDocument.Parse(await client.GetStringAsync("/boards/tech/posts"));
+        var post = doc.RootElement[0];
+
+        Assert.Equal(
+            ["id", "publicId", "title", "content", "author", "createdAt", "bumpedAt", "replyCount"],
+            post.EnumerateObject().Select(p => p.Name).ToArray());
+        Assert.Equal("2026-11-01T12:00:00Z", post.GetProperty("createdAt").GetString());
+        Assert.Equal("2026-11-01T12:00:00Z", post.GetProperty("bumpedAt").GetString());
+        Assert.Equal(0, post.GetProperty("replyCount").GetInt32());
+    }
+
+    [Fact]
+    public async Task GetThread_JsonIsCamelCase_WithUtcTimestamps()
+    {
+        using var factory = new ForumTestFactory();
+        var time = new DateTime(2026, 11, 1, 12, 0, 0, DateTimeKind.Utc);
+        factory.Seed(db =>
+        {
+            db.Posts.Add(new Post
+            {
+                Id = 1, BoardId = 1, PublicId = "json-thread-1",
+                Title = "Json", Content = "Body", Author = "Anonymous",
+                CreatedAt = time, BumpedAt = time
+            });
+            db.Replies.Add(new Reply
+            {
+                Id = 2, PostId = 1, Content = "Reply", Author = null, CreatedAt = time
+            });
+        });
+        var client = factory.CreateClient();
+
+        using var doc = JsonDocument.Parse(await client.GetStringAsync("/boards/tech/posts/json-thread-1"));
+        var thread = doc.RootElement;
+
+        Assert.Equal(
+            ["id", "publicId", "title", "content", "author", "createdAt", "bumpedAt", "replies"],
+            thread.EnumerateObject().Select(p => p.Name).ToArray());
+
+        var reply = thread.GetProperty("replies")[0];
+        Assert.Equal(
+            ["id", "content", "author", "createdAt"],
+            reply.EnumerateObject().Select(p => p.Name).ToArray());
+        Assert.Equal("Anonymous", reply.GetProperty("author").GetString());
+        Assert.Equal("2026-11-01T12:00:00Z", reply.GetProperty("createdAt").GetString());
     }
 }
