@@ -1,26 +1,44 @@
 ---
-import HealthCheck from "../components/HealthCheck";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getBoards } from "../lib/boards";
 
-const API = process.env.API_URL ?? 'http://localhost:8000';
-let serverStatus = 'backend unreachable';
-try {
-	const res = await fetch(`${API}/health`);
-	serverStatus = (await res.json()).status;
-} catch {}
+const boards = await getBoards();
+
+// console.log(boards);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Crawlspace health check</h1>
-		<p>Astro server → backend: <b>{serverStatus}</b></p>
-		<HealthCheck client:load />
-	</body>
-</html>
+<BaseLayout>
+    <div class="main">
+        <div class="boards">
+            <ul style="list-style-type: none;">
+                {boards.map((board) => (<li ><a href={`/${board.slug}/`}>.{board.name}</a></li>))}
+            </ul>
+        </div>
+        <div class="popular">
+            <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Inventore dicta nisi quos dolor exercitationem modi consectetur quasi molestiae blanditiis et, voluptate facere dolorum itaque voluptatibus beatae sapiente odit, hic perspiciatis!</p>
+        </div>
+    </div>
+    
+</BaseLayout>
+
+<style>
+    .main {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .boards {
+        flex: 0 0 30%;
+    }
+    .popular {
+        flex: 1;
+    }
+
+    .main div {
+        padding: 0 15px;
+        border-style: solid;
+        border-radius: 15px;
+        border-color: var(--accent);
+        border-width: 2px;
+    }
+</style>
