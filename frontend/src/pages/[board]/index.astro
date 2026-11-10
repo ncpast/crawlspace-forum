@@ -1,0 +1,32 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getBoard, getThreads } from "../../lib/boards";
+
+const { board: slug } = Astro.params;
+const board = await getBoard(slug);
+const threads = board ? (await getThreads(board.slug)) ?? [] : [];
+
+if (!board) {
+    Astro.response.status = 404;
+}
+---
+
+<BaseLayout title={board ? `/${slug}/ - ${board.name}` : "Board not found"}>
+    {board ? (
+        <>
+            <h1>/{board.slug}/ - {board.name}</h1>
+            <p>{board.description}</p>
+            {threads.length === 0 && <p>No threads yet</p>}
+            <ul>
+                {threads.map((t) => (
+                    <li>
+                        <a href={`/${board.slug}/thread/${t.publicId}`}>{t.title}</a>
+                        - {t.author} - {t.replyCount} replies
+                    </li>
+                ))}
+            </ul>
+        </>
+    ) : (
+        <p>No board called /{slug}</p>
+    )}
+</BaseLayout>

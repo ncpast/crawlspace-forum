@@ -1,23 +1,8 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { getBoards } from "../lib/boards";
 
-type Board = {
-    id: number;
-    slug: string;
-    name: string;
-    description: string;
-};
-
-const boards: Board[] = [
-    {
-        id: 1,
-        slug: "fe",
-        name: "flat earth",
-        description:
-            "Is the Earth actually flat? Where's the edge? How come we don't fall out? What about gravity? Learn all of this and more at this very serious s̶u̶b̶r̶e̶d̶d̶i̶t board.",
-    },
-    { id: 2, slug: "c", name: "cats", description: "meow" },
-];
+const boards = await getBoards();
 
 // console.log(boards);
 ---
