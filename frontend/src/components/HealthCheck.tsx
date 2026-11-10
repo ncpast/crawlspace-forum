@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
+import { getHealth } from "../lib/api";
 
 export default function HealthCheck() {
     const [status, setStatus] = useState('loading...');
 
     useEffect(() => {
-        fetch('/api/health')
-            .then((r) => r.json())
-            .then((data) => setStatus(data.status))
+        getHealth()
+            .then((data) => setStatus(data?.status ?? "unknown"))
             .catch(() => setStatus('backend unreachable'));
     }, []);
 

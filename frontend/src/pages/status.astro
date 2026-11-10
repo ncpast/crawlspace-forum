@@ -1,12 +1,12 @@
 ---
 import HealthCheck from "../components/HealthCheck";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import {getHealth} from "../lib/api";
 
 const API = process.env.API_URL ?? 'http://localhost:8000';
 let serverStatus = 'backend unreachable';
 try {
-	const res = await fetch(`${API}/health`);
-	serverStatus = (await res.json()).status;
+	serverStatus = (await getHealth())?.status ?? "unknown";
 } catch {}
 ---
 
