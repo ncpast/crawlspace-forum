@@ -1,12 +1,11 @@
-﻿
----
+﻿---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getBoards } from "../lib/boards";
 
 const boards = await getBoards();
 ---
 
-<BaseLayout title="devboard - boards">
+<BaseLayout>
     <div class="page-heading">
         <h1><span class="accent">$</span> boards</h1>
         <p>
