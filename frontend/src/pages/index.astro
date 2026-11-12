@@ -1,0 +1,69 @@
+﻿---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getBoards } from "../lib/boards";
+
+const boards = await getBoards();
+---
+
+<BaseLayout>
+    <div class="page-heading">
+        <h1><span class="accent">$</span> boards</h1>
+        <p>
+            Anonymous text threads, freshest bump first.
+            No accounts, no images.
+        </p>
+    </div>
+
+    <div class="main">
+        <section class="boards">
+            <div class="board-list">
+                {boards.map((board) => (
+                    <a
+                        class="board-card"
+                        href={`/${board.slug}/`}
+                    >
+                        <span class="board-slug">
+                            /{board.slug}/
+                        </span>
+
+                        <div class="board-info">
+                            <h2 class="board-name">
+                                {board.name}
+                            </h2>
+
+                            <p class="board-description">
+                                {board.description}
+                            </p>
+                        </div>
+
+                        <div class="board-stats">
+                            <strong>0</strong> threads
+                            <small>last bump —</small>
+                        </div>
+                    </a>
+                ))}
+            </div>
+
+            {boards.length === 0 && (
+                <div class="empty-state">
+                    No boards available yet.
+                </div>
+            )}
+        </section>
+
+        <aside class="popular">
+            <div class="side-card">
+                <h3>Hot threads</h3>
+                <p>No threads yet.</p>
+            </div>
+
+            <div class="side-card">
+                <h3>House rules</h3>
+                <p>
+                    Keep it civil. Nothing illegal, no spam.
+                    Posts can't be deleted for now.
+                </p>
+            </div>
+        </aside>
+    </div>
+</BaseLayout>
