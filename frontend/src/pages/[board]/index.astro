@@ -1,32 +1,89 @@
----
+﻿---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getBoard, getThreads } from "../../lib/boards";
 
 const { board: slug } = Astro.params;
-const board = await getBoard(slug);
-const threads = board ? (await getThreads(board.slug)) ?? [] : [];
+
+const board = slug ? await getBoard(slug) : null;
+const threads = board
+    ? (await getThreads(board.slug)) ?? []
+    : [];
 
 if (!board) {
     Astro.response.status = 404;
 }
 ---
 
-<BaseLayout title={board ? `/${slug}/ - ${board.name}` : "Board not found"}>
+<BaseLayout
+    title={board ? `/${slug}/ - ${board.name}` : "Board not found"}
+>
     {board ? (
         <>
-            <h1>/{board.slug}/ - {board.name}</h1>
-            <p>{board.description}</p>
-            {threads.length === 0 && <p>No threads yet</p>}
-            <ul>
-                {threads.map((t) => (
-                    <li>
-                        <a href={`/${board.slug}/thread/${t.publicId}`}>{t.title}</a>
-                        - {t.author} - {t.replyCount} replies
-                    </li>
-                ))}
-            </ul>
+            <div class="page-heading">
+                <h1>
+                    <span class="accent">/</span>
+                    {board.slug}
+                    <span class="accent">/</span>
+                    {board.name}
+                </h1>
+
+                <p>{board.description}</p>
+            </div>
+
+            <div class="main">
+                <section class="boards">
+                    <div class="thread-list">
+                        {threads.map((t) => (
+                            <a
+                                class="thread-card"
+                                href={`/${board.slug}/thread/${t.publicId}`}
+                            >
+                                <h3>{t.title}</h3>
+
+                                <div class="thread-meta">
+                                    <span>by {t.author}</span>
+                                    <span>{t.replyCount} replies</span>
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+
+                    {threads.length === 0 && (
+                        <div class="empty-state">
+                            No threads yet. Be the first to post!
+                        </div>
+                    )}
+                </section>
+
+                <aside class="popular">
+                    <div class="side-card">
+                        <h3>About this board</h3>
+                        <p>{board.description}</p>
+                    </div>
+
+                    <div class="side-card">
+                        <h3>Statistics</h3>
+                        <p>
+                            {threads.length} threads available.
+                        </p>
+                    </div>
+
+                    <div class="side-card">
+                        <h3>House rules</h3>
+                        <p>
+                            Keep it civil. No spam or illegal content.
+                        </p>
+                    </div>
+                </aside>
+            </div>
         </>
     ) : (
-        <p>No board called /{slug}</p>
+        <div class="empty-state">
+            <h2>Board not found</h2>
+            <p>
+                There is no board called /{slug}/.
+            </p>
+            <a href="/">← Back to boards</a>
+        </div>
     )}
 </BaseLayout>
