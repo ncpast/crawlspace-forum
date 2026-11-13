@@ -20,7 +20,11 @@ jobs:
         run: cp /opt/crawlspace/.env .env
       - name: Deploy
         run: docker compose -p crawlspace-forum up -d --build
-      - name: Smoke test
+      - name: Restart nginx
+        run: docker compose -p crawlspace-forum up -d --force-recreate nginx
+      - name: Smoke test API
         run: curl -f --retry 10 --retry-delay 3 --retry-connrefused http://localhost:8080/api/health
+      - name: Smoke test frontend
+        run: curl -f --retry 10 --retry-delay 3 --retry-connrefused http://localhost:8080/
       - name: Cleanup
         run: docker image prune -f
