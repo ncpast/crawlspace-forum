@@ -1,3 +1,4 @@
+using Backend;
 using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
@@ -103,6 +104,166 @@ app.MapGet("/boards/{board}/posts/{publicId}", async (string board, string publi
     }
 
     return Results.Ok(thread);
+});
+
+app.MapPost("/boards/{board}/posts", async (string board, CreatePostRequest req, AppDbContext db) =>
+{
+    var boardEntity = await db.Boards
+        .FirstOrDefaultAsync(b => b.Slug == board);
+
+    if (boardEntity is null)
+    {
+        return Results.NotFound();
+    }
+
+    if (req is null)
+    {
+        return Results.BadRequest(new { message = "Request body is required." });
+    }
+
+    var title = req.Title?.Trim();
+    if (string.IsNullOrWhiteSpace(title))
+    {
+        return Results.BadRequest(new { message = "Title is required." });
+    }
+    if (title.Length > 100)
+    {
+        return Results.BadRequest(new { message = "Title cannot exceed 100 characters." });
+    }
+
+    var content = req.Content?.Trim();
+    if (string.IsNullOrWhiteSpace(content))
+    {
+        return Results.BadRequest(new { message = "Content is required." });
+    }
+    if (content.Length > 5000)
+    {
+        return Results.BadRequest(new { message = "Content cannot exceed 5000 characters." });
+    }
+
+    var author = string.IsNullOrWhiteSpace(req.Author) ? "Anonymous" : req.Author.Trim();
+    if (author.Length > 30)
+    {
+        return Results.BadRequest(new { message = "Author cannot exceed 30 characters." });
+    }
+
+    var now = DateTime.UtcNow;
+    var tempPublicId = Guid.NewGuid().ToString("N");
+    var post = new Post
+    {
+        BoardId = boardEntity.Id,
+        Title = title,
+        Content = content,
+        Author = author,
+        CreatedAt = now,
+        BumpedAt = now,
+        PublicId = tempPublicId
+    };
+
+    if (db.Database.IsRelational())
+    {
+        using var tx = await db.Database.BeginTransactionAsync();
+        db.Posts.Add(post);
+        await db.SaveChangesAsync();
+
+        post.PublicId = SlugGenerator.GeneratePublicId(post.Title, post.Id);
+        await db.SaveChangesAsync();
+        await tx.CommitAsync();
+    }
+    else
+    {
+        db.Posts.Add(post);
+        await db.SaveChangesAsync();
+
+        post.PublicId = SlugGenerator.GeneratePublicId(post.Title, post.Id);
+        await db.SaveChangesAsync();
+    }
+
+    var response = new PostResponse(
+        post.Id,
+        post.PublicId,
+        post.Title,
+        post.Content,
+        post.Author,
+        post.CreatedAt,
+        post.BumpedAt,
+        0
+    );
+
+    return Results.Created($"/boards/{board}/posts/{post.PublicId}", response);
+});
+
+app.MapPost("/boards/{board}/posts/{publicId}/replies", async (string board, string publicId, CreateReplyRequest req, AppDbContext db) =>
+{
+    var boardEntity = await db.Boards
+        .FirstOrDefaultAsync(b => b.Slug == board);
+
+    if (boardEntity is null)
+    {
+        return Results.NotFound();
+    }
+
+    var post = await db.Posts
+        .FirstOrDefaultAsync(p => p.BoardId == boardEntity.Id && p.PublicId == publicId);
+
+    if (post is null)
+    {
+        return Results.NotFound();
+    }
+
+    if (req is null)
+    {
+        return Results.BadRequest(new { message = "Request body is required." });
+    }
+
+    var content = req.Content?.Trim();
+    if (string.IsNullOrWhiteSpace(content))
+    {
+        return Results.BadRequest(new { message = "Content is required." });
+    }
+    if (content.Length > 5000)
+    {
+        return Results.BadRequest(new { message = "Content cannot exceed 5000 characters." });
+    }
+
+    var author = string.IsNullOrWhiteSpace(req.Author) ? "Anonymous" : req.Author.Trim();
+    if (author.Length > 30)
+    {
+        return Results.BadRequest(new { message = "Author cannot exceed 30 characters." });
+    }
+
+    var now = DateTime.UtcNow;
+    post.BumpedAt = now;
+
+    var reply = new Reply
+    {
+        PostId = post.Id,
+        Content = content,
+        Author = author,
+        CreatedAt = now
+    };
+
+    if (db.Database.IsRelational())
+    {
+        using var tx = await db.Database.BeginTransactionAsync();
+        db.Replies.Add(reply);
+        await db.SaveChangesAsync();
+        await tx.CommitAsync();
+    }
+    else
+    {
+        db.Replies.Add(reply);
+        await db.SaveChangesAsync();
+    }
+
+    var response = new ReplyResponse(
+        reply.Id,
+        reply.Content,
+        reply.Author ?? "Anonymous",
+        reply.CreatedAt
+    );
+
+    return Results.Created($"/boards/{board}/posts/{publicId}", response);
 });
 
 app.Run();
