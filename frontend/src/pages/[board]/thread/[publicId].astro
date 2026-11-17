@@ -22,6 +22,9 @@ if (!thread) {
                     <p>{r.content}</p>
                 </div>
             ))}
+            {thread.replies.length === 0 && (
+                <p class="empty-state">No replies yet. Be the first to express your valuable opinion</p>
+            )}
         </article>
     ) : (
         <p>Thread not found. <a href={`/${board}/`}>Back to /{board}/</a></p>
