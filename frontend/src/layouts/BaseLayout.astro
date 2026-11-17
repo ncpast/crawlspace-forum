@@ -26,12 +26,12 @@ const { title = "crawlspace" } = Astro.props;
             </main>
         </div>
 
-        <script is:inline>
+        <script>
         document.addEventListener("astro:before-preparation", () => {
-            document.querySelector("#loading").classList.add("show");
+            document.getElementById("#loading")?.classList.add("show");
         });
         document.addEventListener("astro:after-preparation", () => {
-            document.querySelector("#loading").classList.remove("show");
+            document.getElementById("#loading")?.classList.remove("show");
         });
         </script>
     </body>
