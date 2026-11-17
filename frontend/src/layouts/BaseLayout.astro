@@ -1,4 +1,6 @@
 ---
+import { ClientRouter } from "astro:transitions";
+
 import "../styles/global.css";
 
 const { title = "crawlspace" } = Astro.props;
@@ -13,13 +15,24 @@ const { title = "crawlspace" } = Astro.props;
         <meta name="generator" content={Astro.generator} />
         <meta name="theme-color" content="#111318" />
         <title>{title}</title>
+        <ClientRouter />
     </head>
 
     <body>
+        <div id="loading" role="progressbar" aria-label="Loading page"></div>
         <div class="container">
             <main>
                 <slot />
             </main>
         </div>
+
+        <script is:inline>
+        document.addEventListener("astro:before-preparation", () => {
+            document.querySelector("#loading").classList.add("show");
+        });
+        document.addEventListener("astro:after-preparation", () => {
+            document.querySelector("#loading").classList.remove("show");
+        });
+        </script>
     </body>
 </html>
