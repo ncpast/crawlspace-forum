@@ -15,13 +15,15 @@ if (!thread) {
         <article>
             <h1>{thread.title}</h1>
             <p><b>{thread.author}</b> No.{thread.id}</p>
-            <p>{thread.content}</p>
-            {thread.replies.map((r) => (
-                <div class="reply">
-                    <p><b>{r.author}</b> No.{r.id}</p>
-                    <p>{r.content}</p>
-                </div>
-            ))}
+           {thread.replies.map((r, i) => (
+    <div class="reply" id={`reply-${i + 1}`}>
+        <p>
+            <a class="reply-num" href={`#reply-${i + 1}`}>#{i + 1}</a>
+            <b>{r.author}</b> No.{r.id}
+        </p>
+        <p>{r.content}</p>
+    </div>
+))}
         </article>
     ) : (
         <p>Thread not found. <a href={`/${board}/`}>Back to /{board}/</a></p>
