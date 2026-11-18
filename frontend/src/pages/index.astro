@@ -7,63 +7,35 @@ const boards = await getBoards();
 
 <BaseLayout>
     <div class="page-heading">
-        <h1><span class="accent">$</span> boards</h1>
-        <p>
-            Anonymous text threads, freshest bump first.
-            No accounts, no images.
-        </p>
+        <h1>Pick a board</h1>
+        <p>anonymous threads, newest bump on top. no accounts, no images, just text.</p>
     </div>
 
-    <div class="main">
-        <section class="boards">
-            <div class="board-list">
-                {boards.map((board) => (
-                    <a
-                        class="board-card"
-                        href={`/${board.slug}/`}
-                    >
-                        <span class="board-slug">
-                            /{board.slug}/
-                        </span>
-
-                        <div class="board-info">
-                            <h2 class="board-name">
-                                {board.name}
-                            </h2>
-
-                            <p class="board-description">
-                                {board.description}
-                            </p>
-                        </div>
-
-                        <div class="board-stats">
-                            <strong>0</strong> threads
-                            <small>last bump —</small>
-                        </div>
-                    </a>
-                ))}
-            </div>
-
-            {boards.length === 0 && (
-                <div class="empty-state">
-                    No boards available yet.
+    <section class="board-grid">
+        {boards.map((board) => (
+            <a class="board-card" href={`/${board.slug}/`}>
+                <div class="board-top">
+                    <span class="board-slug">/{board.slug}/</span>
+                    <span class="board-plus">+</span>
                 </div>
-            )}
-        </section>
 
-        <aside class="popular">
-            <div class="side-card">
-                <h3>Hot threads</h3>
-                <p>No threads yet.</p>
-            </div>
+                <h2 class="board-name">{board.name}</h2>
+                <p class="board-description">{board.description}</p>
 
-            <div class="side-card">
-                <h3>House rules</h3>
-                <p>
-                    Keep it civil. Nothing illegal, no spam.
-                    Posts can't be deleted for now.
-                </p>
-            </div>
-        </aside>
+                <div class="board-foot">
+                    <span>0 threads · last bump —</span>
+                    <span class="board-open">open board →</span>
+                </div>
+            </a>
+        ))}
+    </section>
+
+    {boards.length === 0 && (
+        <div class="empty-state">No boards available yet.</div>
+    )}
+
+    <h3 class="section-title">Latest bumps</h3>
+    <div class="bump-list">
+        <div class="bump-empty">No threads yet.</div>
     </div>
 </BaseLayout>
