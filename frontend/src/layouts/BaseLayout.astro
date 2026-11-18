@@ -1,7 +1,18 @@
 ---
+import { ClientRouter } from "astro:transitions";
+
 import "../styles/global.css";
+import { getBoards } from "../lib/boards";
+import type { Board } from "../lib/types";
 
 const { title = "crawlspace" } = Astro.props;
+
+let boards: Board[] = [];
+try {
+    boards = await getBoards();
+} catch {}
+
+const path = Astro.url.pathname;
 ---
 
 <html lang="en">
@@ -11,15 +22,56 @@ const { title = "crawlspace" } = Astro.props;
         <link rel="icon" href="/favicon.ico" />
         <meta name="viewport" content="width=device-width" />
         <meta name="generator" content={Astro.generator} />
-        <meta name="theme-color" content="#111318" />
+        <meta name="theme-color" content="#f2f2f0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Yellowtail&display=swap"
+            rel="stylesheet"
+        />
         <title>{title}</title>
+        <ClientRouter />
     </head>
 
     <body>
-        <div class="container">
-            <main>
-                <slot />
-            </main>
+        <div id="loading" role="progressbar" aria-label="Loading page"></div>
+        <div class="shell">
+            <aside class="sidebar">
+                <a class="logo" href="/">Crawlspace<span class="logo-plus">+</span></a>
+
+                <nav class="side-nav">
+                    <span class="side-nav-label">Boards</span>
+                    {boards.map((board) => (
+                        <a
+                            class="side-link"
+                            href={`/${board.slug}/`}
+                            aria-current={path.startsWith(`/${board.slug}/`) ? "page" : undefined}
+                        >
+                            /{board.slug}/
+                        </a>
+                    ))}
+                </nav>
+
+                <div class="house-rules">
+                    <strong>House rules</strong>
+                    <p>be civil. nothing illegal. no spam. posts can't be deleted yet.</p>
+                </div>
+            </aside>
+
+            <div class="content">
+                <main class="container">
+                    <slot />
+                </main>
+            </div>
         </div>
+
+        <script>
+            document.addEventListener("astro:before-preparation", () => {
+                document.getElementById("loading")?.classList.add("show");
+            });
+            document.addEventListener("astro:after-preparation", () => {
+                document.getElementById("loading")?.classList.remove("show");
+            });
+        </script>
     </body>
 </html>

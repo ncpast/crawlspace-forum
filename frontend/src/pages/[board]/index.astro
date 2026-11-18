@@ -21,10 +21,8 @@ if (!board) {
         <>
             <div class="page-heading">
                 <h1>
-                    <span class="accent">/</span>
-                    {board.slug}
-                    <span class="accent">/</span>
-                    {board.name}
+                    <span class="board-slug">{"/" + board.slug + "/"}</span>
+                    <span class="accent" style="color: var(--text);">{board.name}</span>
                 </h1>
 
                 <p>{board.description}</p>
