@@ -490,3 +490,17 @@ article {
 .thread-list:empty {
     display: none;
 }
+
+#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: currentColor;
+    display: none;
+    z-index: 1000;
+}
+#loading.show {
+    display: block;
+}

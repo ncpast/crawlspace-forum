@@ -1,4 +1,6 @@
 ---
+import { ClientRouter } from "astro:transitions";
+
 import "../styles/global.css";
 import { getBoards } from "../lib/boards";
 
@@ -27,9 +29,11 @@ const path = Astro.url.pathname;
             rel="stylesheet"
         />
         <title>{title}</title>
+        <ClientRouter />
     </head>
 
     <body>
+        <div id="loading" role="progressbar" aria-label="Loading page"></div>
         <div class="shell">
             <aside class="sidebar">
                 <a class="logo" href="/">Crawlspace<span class="logo-plus">+</span></a>
@@ -59,5 +63,14 @@ const path = Astro.url.pathname;
                 </main>
             </div>
         </div>
+
+        <script>
+            document.addEventListener("astro:before-preparation", () => {
+                document.getElementById("loading")?.classList.add("show");
+            });
+            document.addEventListener("astro:after-preparation", () => {
+                document.getElementById("loading")?.classList.remove("show");
+            });
+        </script>
     </body>
 </html>
