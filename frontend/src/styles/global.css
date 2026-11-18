@@ -500,6 +500,7 @@ article {
     background: currentColor;
     display: none;
     z-index: 1000;
+    color: red;
 }
 #loading.show {
     display: block;

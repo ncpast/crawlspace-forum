@@ -3,10 +3,11 @@ import { ClientRouter } from "astro:transitions";
 
 import "../styles/global.css";
 import { getBoards } from "../lib/boards";
+import type { Board } from "../lib/types";
 
 const { title = "crawlspace" } = Astro.props;
 
-let boards = [];
+let boards: Board[] = [];
 try {
     boards = await getBoards();
 } catch {}
