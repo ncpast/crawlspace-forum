@@ -1,6 +1,7 @@
 import { useState, type SubmitEvent } from "react";
 import { createReply } from "../lib/boards";
 import { LIMITS } from "../lib/limits";
+import { validateReply } from "../lib/validate";
 
 interface Props {
     slug: string;
@@ -20,8 +21,9 @@ export default function ReplyForm({ slug, publicId }: Props) {
         const c = content.trim();
         const a = author.trim();
 
-        if (!c) {
-            setError("Content is required.");
+        const problem = validateReply(c, a);
+        if (problem) {
+            setError(problem);
             return;
         }
 
