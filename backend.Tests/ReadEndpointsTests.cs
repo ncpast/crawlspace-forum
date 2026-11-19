@@ -11,16 +11,42 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Backend.Tests;
 
 public class ForumTestFactory : WebApplicationFactory<Program>
 {
+    private readonly bool _useRealRateLimits;
+
+    public ForumTestFactory()
+    {
+        _useRealRateLimits = false;
+    }
+
+    internal ForumTestFactory(bool useRealRateLimits)
+    {
+        _useRealRateLimits = useRealRateLimits;
+    }
+
     private readonly string _dbName = Guid.NewGuid().ToString();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        if (!_useRealRateLimits)
+        {
+            builder.ConfigureAppConfiguration((context, config) =>
+            {
+                config.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["RateLimiting:CreatePostLimit"] = "10000",
+                    ["RateLimiting:CreateReplyLimit"] = "10000",
+                    ["RateLimiting:ReadLimit"] = "10000"
+                });
+            });
+        }
+
         builder.ConfigureServices(services =>
         {
             // remove the app's Npgsql registration

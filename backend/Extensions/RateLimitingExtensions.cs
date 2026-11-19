@@ -25,18 +25,33 @@ public static class RateLimitingExtensions
     }
 
     public static IServiceCollection AddForumRateLimiting(
-        this IServiceCollection services)
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-            AddIpPolicy(options, "create-post", 3);
-            AddIpPolicy(options, "create-reply", 10);
-            AddIpPolicy(options, "read", 120);
+            AddIpPolicy(
+                options,
+                "create-post",
+                configuration.GetValue<int?>("RateLimiting:CreatePostLimit") ?? 3
+            );
+
+            AddIpPolicy(
+                options,
+                "create-reply",
+                configuration.GetValue<int?>("RateLimiting:CreateReplyLimit") ?? 10
+            );
+
+            AddIpPolicy(
+                options,
+                "read",
+                configuration.GetValue<int?>("RateLimiting:ReadLimit") ?? 120
+            );
         });
 
-    return services;
+        return services;
     }
 }
 

@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
-builder.Services.AddForumRateLimiting();
+builder.Services.AddForumRateLimiting(builder.Configuration);
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
