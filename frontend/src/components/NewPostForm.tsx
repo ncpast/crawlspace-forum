@@ -30,7 +30,6 @@ export default function NewPostForm({ slug }: Props) {
 
     setSubmitting(true);
 
-    setSubmitting(true);
     const res = await createPost(slug, {
       title: t,
       content: c,
