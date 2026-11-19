@@ -515,7 +515,6 @@ article > p:last-of-type {
   display: block;
 }
 
-
 .post-form {
   display: flex;
   flex-direction: column;
@@ -526,7 +525,9 @@ article > p:last-of-type {
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
-.post-form h3 { margin: 0; }
+.post-form h3 {
+  margin: 0;
+}
 .post-form input,
 .post-form textarea {
   padding: 10px 12px;
@@ -535,7 +536,10 @@ article > p:last-of-type {
   background: var(--bg);
   color: var(--text);
 }
-.post-form textarea { min-height: 120px; resize: vertical; }
+.post-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
 .post-form button {
   align-self: flex-end;
   padding: 8px 18px;
@@ -545,6 +549,16 @@ article > p:last-of-type {
   color: #fff;
   cursor: pointer;
 }
-.post-form button:disabled { opacity: 0.6; cursor: default; }
-.char-count { font-size: 12px; color: var(--text-muted); text-align: right; }
-.form-error { margin: 0; color: #c0392b; }
+.post-form button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.char-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: right;
+}
+.form-error {
+  margin: 0;
+  color: #c0392b;
+}
