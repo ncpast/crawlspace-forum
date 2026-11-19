@@ -2,8 +2,10 @@ using Backend;
 using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
+using System.Net;
 using Backend.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +14,29 @@ builder.Services.AddDbContext<AppDbContext>(o =>
 
 builder.Services.AddForumRateLimiting();
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
+
+    options.ForwardLimit = 1;
+
+    var trustedProxy = builder.Configuration["TRUSTED_PROXY_IP"];
+
+    if (!string.IsNullOrWhiteSpace(trustedProxy))
+    {
+        var proxyAddress = IPAddress.Parse(trustedProxy);
+
+        options.KnownProxies.Add(proxyAddress);
+
+        if (proxyAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            options.KnownProxies.Add(proxyAddress.MapToIPv6());
+        }
+    }
+});
+
 var app = builder.Build();
+app.UseForwardedHeaders();
 
 // create/update tables on startup (InMemory in tests is not relational, so it's skipped)
 using (var scope = app.Services.CreateScope())
@@ -109,7 +133,7 @@ app.MapGet("/boards/{board}/posts/{publicId}", async (string board, string publi
     }
 
     return Results.Ok(thread);
-}).RequireRateLimiting("read");;
+}).RequireRateLimiting("read");
 
 app.MapPost("/boards/{board}/posts", async (string board, CreatePostRequest req, AppDbContext db) =>
 {
