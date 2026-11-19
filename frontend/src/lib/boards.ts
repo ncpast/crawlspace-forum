@@ -1,5 +1,5 @@
-import { apiGet } from "./api";
-import type { Board, PostSummary, Thread } from "./types";
+import { apiGet, apiPost } from "./api";
+import type { Board, PostSummary, Thread, NewPost, Reply, NewReply } from "./types";
 
 export async function getBoards(): Promise<Board[]> {
     return (await apiGet<Board[]>('/boards')) ?? [];
@@ -18,3 +18,10 @@ export function getThread(slug: string, publicId: string) {
     return apiGet<Thread>(`/boards/${slug}/posts/${publicId}`);
 }
 
+export function createPost(slug: string, post: NewPost) {
+    return apiPost<PostSummary>(`/boards/${slug}/posts`, post)
+}
+
+export function createReply(slug: string, publicId: string, reply: NewReply) {
+    return apiPost<Reply>(`/boards/${slug}/posts/${publicId}/replies`, reply)
+}

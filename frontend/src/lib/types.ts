@@ -16,6 +16,12 @@ export interface PostSummary {
     replyCount: number;
 }
 
+export interface NewPost {
+    title: string;
+    content: string;
+    author?: string
+}
+
 export interface Reply {
     id: number;
     content: string;
@@ -23,6 +29,15 @@ export interface Reply {
     createdAt: string;
 }
 
+export interface NewReply {
+    content: string;
+    author?: string;
+}
+
 export interface Thread extends Omit<PostSummary, 'replyCount'> {
     replies: Reply[];
 }
+
+export type ApiResult<T> =
+    | {ok: true; data: T}
+    | {ok: false; error: string};
