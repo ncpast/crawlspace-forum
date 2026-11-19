@@ -1,6 +1,7 @@
 import { useState, type SubmitEvent } from "react";
 import { createPost } from "../lib/boards";
 import { LIMITS } from "../lib/limits";
+import { validatePost } from "../lib/validate";
 
 interface Props {
   slug: string;
@@ -21,15 +22,13 @@ export default function NewPostForm({ slug }: Props) {
     const c = content.trim();
     const a = author.trim();
 
-    if (!t) {
-      setError("Title is required.");
-      return;
+    const problem = validatePost(t, c, a);
+    if (problem) {
+        setError(problem);
+        return;
     }
 
-    if (!c) {
-      setError("Content is required.");
-      return;
-    }
+    setSubmitting(true);
 
     setSubmitting(true);
     const res = await createPost(slug, {
