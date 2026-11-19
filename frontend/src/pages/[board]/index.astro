@@ -1,6 +1,7 @@
 ﻿---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getBoard, getThreads } from "../../lib/boards";
+import NewPostForm from "../../components/NewPostForm";
 
 const { board: slug } = Astro.params;
 
@@ -30,6 +31,7 @@ if (!board) {
 
             <div class="main">
                 <section class="boards">
+                    <NewPostForm client:load slug={board.slug}/>
                     <div class="thread-list">
                         {threads.map((t) => (
                             <a
