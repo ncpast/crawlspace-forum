@@ -32,6 +32,11 @@ export async function apiPost<T>(
     return { ok: true, data: created };
   }
 
+  if (res.status === 400) {
+    const body = await res.json().catch(() => null);
+    return { ok: false, error: body?.message ?? "Invalid input." };
+  }
+
   if (res.status === 404) {
     return { ok: false, error: "This board or thread no longer exists." };
   }
