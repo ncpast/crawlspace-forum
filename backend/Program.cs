@@ -2,14 +2,41 @@ using Backend;
 using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
+using System.Net;
+using Backend.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
+builder.Services.AddForumRateLimiting(builder.Configuration);
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
+
+    options.ForwardLimit = 1;
+
+    var trustedProxy = builder.Configuration["TRUSTED_PROXY_IP"];
+
+    if (!string.IsNullOrWhiteSpace(trustedProxy))
+    {
+        var proxyAddress = IPAddress.Parse(trustedProxy);
+
+        options.KnownProxies.Add(proxyAddress);
+
+        if (proxyAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            options.KnownProxies.Add(proxyAddress.MapToIPv6());
+        }
+    }
+});
+
 var app = builder.Build();
+app.UseForwardedHeaders();
 
 // create/update tables on startup (InMemory in tests is not relational, so it's skipped)
 using (var scope = app.Services.CreateScope())
@@ -18,6 +45,8 @@ using (var scope = app.Services.CreateScope())
     if (db.Database.IsRelational())
         db.Database.Migrate();
 }
+
+app.UseRateLimiter();
 
 app.MapGet("/", () => "Hello from backend");
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
@@ -31,7 +60,7 @@ app.MapGet("/boards", async (AppDbContext db) =>
         .ToListAsync();
 
     return Results.Ok(boards);
-});
+}).RequireRateLimiting("read");
 
 app.MapGet("/boards/{board}/posts", async (string board, AppDbContext db) =>
 {
@@ -62,7 +91,7 @@ app.MapGet("/boards/{board}/posts", async (string board, AppDbContext db) =>
         .ToListAsync();
 
     return Results.Ok(posts);
-});
+}).RequireRateLimiting("read");
 
 app.MapGet("/boards/{board}/posts/{publicId}", async (string board, string publicId, AppDbContext db) =>
 {
@@ -104,7 +133,7 @@ app.MapGet("/boards/{board}/posts/{publicId}", async (string board, string publi
     }
 
     return Results.Ok(thread);
-});
+}).RequireRateLimiting("read");
 
 app.MapPost("/boards/{board}/posts", async (string board, CreatePostRequest req, AppDbContext db) =>
 {
@@ -191,7 +220,8 @@ app.MapPost("/boards/{board}/posts", async (string board, CreatePostRequest req,
     );
 
     return Results.Created($"/boards/{board}/posts/{post.PublicId}", response);
-});
+})
+.RequireRateLimiting("create-post");
 
 app.MapPost("/boards/{board}/posts/{publicId}/replies", async (string board, string publicId, CreateReplyRequest req, AppDbContext db) =>
 {
@@ -264,7 +294,7 @@ app.MapPost("/boards/{board}/posts/{publicId}/replies", async (string board, str
     );
 
     return Results.Created($"/boards/{board}/posts/{publicId}", response);
-});
+}).RequireRateLimiting("create-reply");
 
 app.Run();
 

@@ -8,6 +8,10 @@ services:
     depends_on:
       - frontend
       - backend
+    networks:
+      default:
+      proxy_net:
+        ipv4_address: 172.30.250.10
 
   frontend:
     build: ./frontend
@@ -20,6 +24,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      default:
+      proxy_net:
+        aliases:
+          - backend-proxy
 
   db:
     image: postgres:17
@@ -33,3 +42,10 @@ services:
 
 volumes:
   dbdata:
+
+networks:
+  proxy_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.250.0/24
