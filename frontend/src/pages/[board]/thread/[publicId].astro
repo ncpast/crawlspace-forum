@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getThread } from "../../../lib/boards";
+import ReplyForm from "../../../components/ReplyForm";
 
 const {board, publicId} = Astro.params;
 const thread = board && publicId ? await getThread(board, publicId) : null;
@@ -12,20 +13,26 @@ if (!thread) {
 
 <BaseLayout title={thread ? `${thread.title} - /${board}/` : "Thread not found"}>
     {thread ? (
-        <article>
-            <h1>{thread.title} <span class="id">#{thread.id}</span></h1>
-            <p style="font-size: 120%;"><b>{thread.author}</b></p>
-            <p>{thread.content}</p>
-           {thread.replies.map((r, i) => (
-    <div class="reply" id={`reply-${i + 1}`}>
-        <p>
-            <a class="reply-num" href={`#reply-${r.id}`}><span class="id">#{r.id}</span></a>
-            <b>{r.author}</b>
-        </p>
-        <p>{r.content}</p>
-    </div>
-))}
-        </article>
+        <>
+            <article>
+                <h1>{thread.title} <span class="id">#{thread.id}</span></h1>
+                <p style="font-size: 120%;"><b>{thread.author}</b></p>
+                <p>{thread.content}</p>
+                {thread.replies.map((r, i) => (
+                    <div class="reply" id={`reply-${i + 1}`}>
+                        <p>
+                            <a class="reply-num" href={`#reply-${r.id}`}><span class="id">#{r.id}</span></a>
+                            <b>{r.author}</b>
+                        </p>
+                        <p>{r.content}</p>
+                    </div>
+                ))}
+            </article>
+
+            <div style="margin-top: 20px;">
+                <ReplyForm client:load slug={board!} publicId={publicId!} />
+            </div>
+        </>
     ) : (
         <p>Thread not found. <a href={`/${board}/`}>Back to /{board}/</a></p>
     )}
