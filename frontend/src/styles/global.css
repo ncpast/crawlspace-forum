@@ -514,3 +514,51 @@ article > p:last-of-type {
 #loading.show {
   display: block;
 }
+
+.post-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.post-form h3 {
+  margin: 0;
+}
+.post-form input,
+.post-form textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+}
+.post-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+.post-form button {
+  align-self: flex-end;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+.post-form button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.char-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: right;
+}
+.form-error {
+  margin: 0;
+  color: #c0392b;
+}
