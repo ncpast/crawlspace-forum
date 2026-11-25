@@ -363,6 +363,33 @@ article h1 {
   text-decoration: underline;
 }
 
+.reply-btn {
+    margin-left: 10px;
+    padding: 2px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+    .reply-btn:hover {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+    }
+
+.reply-ref {
+    color: var(--accent);
+    font-family: var(--font-mono);
+}
+
+    .reply-ref:hover {
+        text-decoration: underline;
+    }
+
 /* ---------- Empty / status ---------- */
 
 .empty-state {

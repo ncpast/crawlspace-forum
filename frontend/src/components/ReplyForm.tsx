@@ -1,4 +1,4 @@
-import { useState, type SubmitEvent } from "react";
+import { useEffect, useRef, useState, type SubmitEvent } from "react";
 import { createReply } from "../lib/boards";
 import { LIMITS } from "../lib/limits";
 import { validateReply } from "../lib/validate";
@@ -13,6 +13,20 @@ export default function ReplyForm({ slug, publicId }: Props) {
     const [author, setAuthor] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+        function onReplyTo(e: Event) {
+            const id = (e as CustomEvent<{ id: string }>).detail.id;
+            setContent((prev) => {
+                const rest = prev.replace(/^RE: \S+\n?/, "");
+                return `RE: ${id}\n${rest}`.slice(0, LIMITS.content);
+            });
+            textareaRef.current?.focus();
+        }
+        window.addEventListener("reply-to", onReplyTo);
+        return () => window.removeEventListener("reply-to", onReplyTo);
+    }, []);
 
     async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -56,6 +70,7 @@ export default function ReplyForm({ slug, publicId }: Props) {
             />
 
             <textarea
+                ref={textareaRef}
                 placeholder="Write your reply..."
                 aria-label="Content"
                 value={content}
