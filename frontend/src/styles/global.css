@@ -310,13 +310,13 @@ article h1 {
   overflow-wrap: anywhere;
 }
 
-article > p:first-of-type {
+.op > p:first-of-type {
   margin-bottom: 20px;
   color: var(--accent);
   font-size: 13px;
 }
 
-article > p:last-of-type {
+.op > p:last-of-type {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   line-height: 1.8;

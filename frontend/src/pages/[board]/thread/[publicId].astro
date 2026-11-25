@@ -15,11 +15,13 @@ if (!thread) {
     {thread ? (
         <>
             <article>
-                <h1>{thread.title} <span class="id">#{thread.id}</span></h1>
-                <p style="font-size: 120%;"><b>{thread.author}</b></p>
-                <p>{thread.content}</p>
+                <div class="op" id="op">
+                    <h1>{thread.title} <span class="id">#{thread.id}</span></h1>
+                    <p style="font-size: 120%;"><b>{thread.author}</b></p>
+                    <p>{thread.content}</p>
+                </div>
                 {thread.replies.map((r, i) => (
-                    <div class="reply" id={`reply-${i + 1}`}>
+                    <div class="reply" id={`reply-${r.id}`}>
                         <p>
                             <a class="reply-num" href={`#reply-${r.id}`}><span class="id">#{r.id}</span></a>
                             <b>{r.author}</b>
