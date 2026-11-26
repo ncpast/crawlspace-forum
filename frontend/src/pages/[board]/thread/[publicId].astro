@@ -13,7 +13,7 @@ const replyIds = new Set((thread?.replies ?? []).map((r) => String(r.id)));
 
 function parseContent(text: string) {
     const parts: { text: string; ref?: string }[] = [];
-    const re = /RE: ([\w-]+)/g;
+    const re = /\bRE:[ \t]*(\d+)\b/g;
     let last = 0;
     for (const m of text.matchAll(re)) {
         if (!replyIds.has(m[1])) continue;
@@ -33,7 +33,7 @@ function parseContent(text: string) {
                 <div class="op" id="op">
                     <h1>{thread.title} <span class="id">#{thread.id}</span></h1>
                     <p style="font-size: 120%;"><b>{thread.author}</b></p>
-                    <p>{thread.content}</p>
+                    <p>{parseContent(thread.content).map((p) => p.ref ? <a class="reply-ref" href={`#reply-${p.ref}`}>{p.text}></a> : p.text)}</p>
                 </div>
                 {thread.replies.map((r, i) => (
                     <div class="reply" id={`reply-${r.id}`}>
