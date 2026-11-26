@@ -1,5 +1,13 @@
 import type { ApiResult } from "./types";
 
+export const RATE_LIMIT_MESSAGE = "Too many requests, try again in a minute.";
+
+export class RateLimitError extends Error {
+    constructor() {
+        super(RATE_LIMIT_MESSAGE);
+    }
+}
+
 // const API_URL = process.env.API_URL ?? 'http://localhost:8000'
 const BASE = import.meta.env.SSR
   ? (process.env.API_URL ?? "http://localhost:8000")
@@ -8,6 +16,7 @@ const BASE = import.meta.env.SSR
 export async function apiGet<T>(path: string): Promise<T | null> {
   const res = await fetch(`${BASE}${path}`);
   if (res.status === 404) return null;
+  if (res.status === 429) throw new RateLimitError();
   if (!res.ok) throw new Error(`API ${res.status} on ${path}`);
   return res.json() as Promise<T>;
 }
@@ -48,3 +57,4 @@ export async function apiPost<T>(
 }
 
 export const getHealth = () => apiGet<{ status: string }>("/health");
+
