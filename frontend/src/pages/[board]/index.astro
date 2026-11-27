@@ -2,23 +2,35 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getBoard, getThreads } from "../../lib/boards";
 import NewPostForm from "../../components/NewPostForm";
+import { RateLimitError } from "../../lib/api";
 
 const { board: slug } = Astro.params;
 
-const board = slug ? await getBoard(slug) : null;
-const threads = board
-    ? (await getThreads(board.slug)) ?? []
-    : [];
-
-if (!board) {
-    Astro.response.status = 404;
+let board: Awaited<ReturnType<typeof getBoard>> = null;
+let threads: NonNullable<Awaited<ReturnType<typeof getThreads>>> = [];
+let rateLimited = false;
+try {
+    board = slug ? await getBoard(slug) : null;
+    threads = board ? (await getThreads(board.slug)) ?? [] : [];
+} catch (e) {
+    if (e instanceof RateLimitError) rateLimited = true;
+    else throw e;
 }
+
+if (rateLimited) Astro.response.status = 429;
+else if (!board) Astro.response.status = 404;
 ---
 
 <BaseLayout
-    title={board ? `/${slug}/ - ${board.name}` : "Board not found"}
+    title={rateLimited ? "Too many requests" : board ? `/${slug}/ - ${board.name}` : "Board not found"}
 >
-    {board ? (
+    {rateLimited ? (
+        <div class="empty-state">
+            <h2>Slow down</h2>
+            <p>Too many requests, try again in a minute.</p>
+            <a href={Astro.url.pathname}>⟳ Try again</a>
+        </div>
+    ) : board ? (
         <>
             <div class="page-heading">
                 <h1>

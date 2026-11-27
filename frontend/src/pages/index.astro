@@ -1,8 +1,18 @@
 ﻿---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getBoards } from "../lib/boards";
+import { RateLimitError } from "../lib/api";
 
-const boards = await getBoards();
+let boards: Awaited<ReturnType<typeof getBoards>> = [];
+let rateLimited = false;
+try {
+    boards = await getBoards();
+} catch (e) {
+    if (e instanceof RateLimitError) rateLimited = true;
+    else throw e;
+}
+
+if (rateLimited) Astro.response.status = 429;
 ---
 
 <BaseLayout>
@@ -11,31 +21,41 @@ const boards = await getBoards();
         <p>anonymous threads, newest bump on top. no accounts, no images, just text.</p>
     </div>
 
-    <section class="board-grid">
-        {boards.map((board) => (
-            <a class="board-card" href={`/${board.slug}/`}>
-                <div class="board-top">
-                    <span class="board-slug">/{board.slug}/</span>
-                    <span class="board-plus">+</span>
-                </div>
+    {rateLimited ? (
+        <div class="empty-state">
+            <h2>Slow down</h2>
+            <p>Too many requests, try again in a minute.</p>
+            <a href={Astro.url.pathname}>⟳ Try again</a>
+        </div>
+    ) : (
+        <>
+            <section class="board-grid">
+                {boards.map((board) => (
+                    <a class="board-card" href={`/${board.slug}/`}>
+                        <div class="board-top">
+                            <span class="board-slug">/{board.slug}/</span>
+                            <span class="board-plus">+</span>
+                        </div>
 
-                <h2 class="board-name">{board.name}</h2>
-                <p class="board-description">{board.description}</p>
+                        <h2 class="board-name">{board.name}</h2>
+                        <p class="board-description">{board.description}</p>
 
-                <div class="board-foot">
-                    <span>0 threads · last bump —</span>
-                    <span class="board-open">open board →</span>
-                </div>
-            </a>
-        ))}
-    </section>
+                        <div class="board-foot">
+                            <span>0 threads · last bump —</span>
+                            <span class="board-open">open board →</span>
+                        </div>
+                    </a>
+                ))}
+            </section>
 
-    {boards.length === 0 && (
-        <div class="empty-state">No boards available yet.</div>
+            {boards.length === 0 && (
+                <div class="empty-state">No boards available yet.</div>
+            )}
+
+            <h3 class="section-title">Latest bumps</h3>
+            <div class="bump-list">
+                <div class="bump-empty">No threads yet.</div>
+            </div>
+        </>
     )}
-
-    <h3 class="section-title">Latest bumps</h3>
-    <div class="bump-list">
-        <div class="bump-empty">No threads yet.</div>
-    </div>
 </BaseLayout>
